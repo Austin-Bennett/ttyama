@@ -1,0 +1,11 @@
+[package]
+name = "ttyama"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ollama-rs = "0.3.4"
+tokio = { version = "1.49.0", features = ["default", "rt", "rt-multi-thread", "macros"] }
+ratatui = "0.30.0"
+crossterm = "0.29.0"
+async-trait = "0.1.89"
