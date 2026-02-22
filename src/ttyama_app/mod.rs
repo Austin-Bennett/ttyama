@@ -1,17 +1,17 @@
-use std::io::{Read, Write};
+use crate::ui::button::Button;
+use crate::ui::ui_tree::UITree;
+use crate::utils::Auxiliaries;
+use crossterm::event::KeyEvent;
+use ratatui::layout::Rect;
+use std::fs::File;
+use std::io::{BufWriter, Write};
 use std::net::TcpStream;
 use std::ops::DerefMut;
 use std::sync::{Arc, Mutex};
-use crossterm::event::KeyEvent;
-use ratatui::Frame;
-use ratatui::layout::Rect;
-use crate::ui::button::Button;
-use crate::ui::Direction;
-use crate::ui::ui_tree::UITree;
-use crate::utils::Auxiliaries;
 
 pub struct TTYama {
-    log_server: Option<TcpStream>
+    log_server: Option<TcpStream>,
+    log_file: BufWriter<File>,
 }
 
 impl TTYama {
@@ -22,16 +22,26 @@ impl TTYama {
             })
         );
 
+        let mut log_file = BufWriter::new(File::create(format!("/logs/log_{}.txt", chrono::Local::now().format("%m-%d-%y-%H:%M"))).unwrap());
+        
+
         Arc::new(
             Mutex::new(
                 Self{
                     log_server: {
                         if let Some(s) = log_server {
-                            Some(TcpStream::connect(s).unwrap())
+                            match TcpStream::connect(s) {
+                                Ok(stream) => Some(stream),
+                                Err(e) => {
+                                    log_file.write(format!("Failed to connect to logging server: {:?}", e).as_bytes()).ignore();
+                                    None
+                                }
+                            }
                         } else {
                             None
                         }
-                    }
+                    },
+                    log_file,
                 }
             )
         )
@@ -42,6 +52,8 @@ impl TTYama {
         if let Some(serv) = &mut self.log_server {
             serv.write(msg.as_ref().as_bytes()).ignore();
         }
+        self.log_file.write(msg.as_ref().as_bytes()).ignore();
+        self.log_file.write("\n".as_bytes()).ignore();
     }
 
 

@@ -9,3 +9,4 @@ tokio = { version = "1.49.0", features = ["default", "rt", "rt-multi-thread", "m
 ratatui = "0.30.0"
 crossterm = "0.29.0"
 async-trait = "0.1.89"
+chrono = "0.4.43"
